@@ -1,11 +1,11 @@
 from core.db import Base, engine
 from fastapi import FastAPI
+from routers.expense import expense_router
 
-app = FastAPI()
-
+# Create Database Tables
 Base.metadata.create_all(bind=engine)
 
 
-@app.get("/")
-def root():
-    return {"message": "Welcome to the Expense Tracker API", "success": True}
+app = FastAPI()
+
+app.include_router(expense_router)
