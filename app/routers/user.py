@@ -2,6 +2,7 @@ from typing import Annotated
 
 from core.db import get_db
 from core.password_hasher import hash_password
+from core.secure import get_current_user
 from fastapi import APIRouter, Depends, Response, status
 from models.user import User
 from schemas.api_response import APIResponse
@@ -47,7 +48,10 @@ def create_user(
 
 
 @user_router.get("/", response_model=APIResponse[list[UserResponseDto]])
-def get_all_users(db: Annotated[Session, Depends(get_db)]):
+def get_all_users(
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     users = db.query(User).all()
 
     return APIResponse[list[UserResponseDto]](
@@ -57,7 +61,10 @@ def get_all_users(db: Annotated[Session, Depends(get_db)]):
 
 @user_router.get("/{id}", response_model=APIResponse[UserResponseDto])
 def get_user_by_id(
-    id: str, db: Annotated[Session, Depends(get_db)], response: Response
+    id: str,
+    db: Annotated[Session, Depends(get_db)],
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
 ):
     user = db.query(User).filter(User.id == id).first()
 
@@ -80,6 +87,7 @@ def update_user(
     payload: UserUpdateDto,
     db: Annotated[Session, Depends(get_db)],
     response: Response,
+    user: Annotated[User, Depends(get_current_user)],
 ):
     user = db.query(User).filter(User.id == id).first()
 
@@ -109,7 +117,12 @@ def update_user(
 
 
 @user_router.delete("/{id}", response_model=APIResponse[None])
-def delete_user(id: str, db: Annotated[Session, Depends(get_db)], response: Response):
+def delete_user(
+    id: str,
+    db: Annotated[Session, Depends(get_db)],
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
+):
     user = db.get(User, id)
 
     if not user:

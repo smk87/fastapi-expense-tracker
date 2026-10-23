@@ -29,7 +29,10 @@ def get_current_user(
             )
 
         request.state.user = user
+        return user
 
+    except HTTPException:
+        raise
     except Exception as e:
         print("Error in getting user", e)
 

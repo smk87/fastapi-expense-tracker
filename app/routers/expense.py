@@ -38,7 +38,10 @@ def create_expense(
 
 # Get all expenses
 @expense_router.get("/", response_model=APIResponse[list[ExpenseResponseDto]])
-def get_expenses(db: Annotated[Session, Depends(get_db)]):
+def get_expenses(
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     expenses = db.query(Expense).all()
 
     return APIResponse[list[ExpenseResponseDto]](
@@ -48,7 +51,11 @@ def get_expenses(db: Annotated[Session, Depends(get_db)]):
 
 # Search expense by title
 @expense_router.get("/search", response_model=APIResponse[list[ExpenseResponseDto]])
-def search_expense(title: str, db: Annotated[Session, Depends(get_db)]):
+def search_expense(
+    title: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     expenses = db.query(Expense).filter(Expense.title.ilike(f"%{title}%")).all()
 
     return APIResponse[list[ExpenseResponseDto]](
@@ -58,7 +65,12 @@ def search_expense(title: str, db: Annotated[Session, Depends(get_db)]):
 
 # Get expense by id
 @expense_router.get("/{id}", response_model=APIResponse[ExpenseResponseDto])
-def get_expense(id: int, db: Annotated[Session, Depends(get_db)], response: Response):
+def get_expense(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
+):
     expense = db.get(Expense, id)
 
     if not expense:
@@ -83,6 +95,7 @@ def update_expense(
     expense_update_dto: ExpenseUpdateDto,
     db: Annotated[Session, Depends(get_db)],
     response: Response,
+    user: Annotated[User, Depends(get_current_user)],
 ):
     expense = db.get(Expense, id)
 
@@ -120,7 +133,10 @@ def update_expense(
 # Delete expense by id
 @expense_router.delete("/{id}", response_model=APIResponse[ExpenseResponseDto])
 def delete_expense(
-    id: int, db: Annotated[Session, Depends(get_db)], response: Response
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
 ):
     expense = db.get(Expense, id)
 
