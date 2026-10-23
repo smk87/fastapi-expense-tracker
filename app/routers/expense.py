@@ -1,19 +1,23 @@
 from typing import Annotated
 
 from core.db import get_db
+from core.secure import get_current_user
 from fastapi import APIRouter, Depends, Response, status
 from models.expense import Expense
+from models.user import User
 from schemas.api_response import APIResponse
 from schemas.expense import ExpenseCreateDto, ExpenseResponseDto, ExpenseUpdateDto
 from sqlalchemy.orm import Session
 
-expense_router = APIRouter(prefix="/expenses")
+expense_router = APIRouter(prefix="/expenses", tags=["Expense"])
 
 
 # Create expense
 @expense_router.post("/", response_model=APIResponse[ExpenseResponseDto])
 def create_expense(
-    expense_request_dto: ExpenseCreateDto, db: Annotated[Session, Depends(get_db)]
+    expense_request_dto: ExpenseCreateDto,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     new_expense = Expense(
         title=expense_request_dto.title,
@@ -22,9 +26,7 @@ def create_expense(
     )
 
     db.add(new_expense)
-
     db.commit()
-
     db.refresh(new_expense)
 
     return APIResponse[ExpenseResponseDto](
@@ -137,5 +139,3 @@ def delete_expense(
         status="success",
         message="Expense deleted successfully",
     )
-
-
